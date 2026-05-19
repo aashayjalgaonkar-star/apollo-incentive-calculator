@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Apollo Earnings Calculator — Codingal</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #faf9f7;
+    --surface: #ffffff;
+    --surface2: #f5f3ef;
+    --border: #e8e4de;
+    --accent: #ff5c39;
+    --accent2: #e84b2a;
+    --gold: #f59e0b;
+    --green: #059669;
+    --blue: #2563eb;
+    --red: #dc2626;
+    --purple: #7c3aed;
+    --text: #1a1a2e;
+    --muted: #9ca3af;
+    --soft: #6b7280;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
+
+  .header {
+    background: linear-gradient(135deg, #fff5f2 0%, #fff0ec 50%, #fef3f0 100%);
+    padding: 0 0 0; text-align: center;
+    position: relative; overflow: hidden; border-bottom: 1px solid #ffd5cb;
+  }
+  .header::before {
+    content: ''; position: absolute; top: -80px; left: 50%; transform: translateX(-50%);
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(255,92,57,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  /* Top nav bar */
+  .topnav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 28px; background: #ffffff;
+    border-bottom: 1px solid #f0ece6;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .topnav-logo { display: flex; align-items: center; gap: 0; }
+  .topnav-logo img { height: 32px; }
+  .topnav-right { display: flex; align-items: center; gap: 12px; }
+  .topnav-link { font-size: 13px; color: var(--soft); font-weight: 500; text-decoration: none; }
+  .topnav-cta {
+    background: var(--accent); color: white;
+    font-size: 13px; font-weight: 600; padding: 8px 16px;
+    border-radius: 8px; text-decoration: none; border: none; cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .topnav-cta:hover { opacity: 0.88; }
+  /* Header content */
+  .header-body { padding: 36px 24px 32px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,92,57,0.1); border: 1px solid rgba(255,92,57,0.25);
+    color: var(--accent2); padding: 4px 14px; border-radius: 999px;
+    font-size: 12px; font-weight: 500; letter-spacing: 0.05em; margin-bottom: 16px;
+  }
+  .header h1 { font-family: 'Syne', sans-serif; font-size: clamp(24px,5vw,40px); font-weight: 800; line-height: 1.1; margin-bottom: 10px; color: var(--text); }
+  .header h1 span { color: var(--accent); }
+  .header p { color: var(--soft); font-size: 14px; max-width: 520px; margin: 0 auto; }
+
+  .tabs {
+    display: flex; background: #ffffff; border-bottom: 1px solid var(--border);
+    overflow-x: auto; scrollbar-width: none; position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex: 1; min-width: 90px; padding: 13px 12px;
+    font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 600;
+    color: var(--muted); background: none; border: none;
+    border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.2s;
+    white-space: nowrap; text-align: center;
+  }
+  .tab:hover { color: var(--soft); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .main { max-width: 1100px; margin: 0 auto; padding: 20px 16px 110px; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 14px; }
+  .card-title {
+    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700;
+    color: var(--accent2); text-transform: uppercase; letter-spacing: 0.06em;
+    margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+  }
+
+  .field { margin-bottom: 16px; }
+  .label { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--soft); margin-bottom: 8px; }
+  .tip {
+    width: 16px; height: 16px; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 50%; font-size: 10px; color: var(--muted);
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: help; position: relative; flex-shrink: 0;
+  }
+  .tip::after {
+    content: attr(data-tip); display: none;
+    position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%);
+    background: #1f2937; border: 1px solid #374151; color: #f9fafb;
+    font-size: 12px; font-weight: 400; padding: 8px 12px; border-radius: 8px;
+    width: 220px; white-space: normal; z-index: 999; pointer-events: none;
+    text-transform: none; letter-spacing: 0; line-height: 1.4;
+  }
+  .tip:hover::after { display: block; }
+  .slider-val { display: inline-block; background: var(--accent); color: white; font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 999px; margin-left: 6px; }
+
+  input[type=range] {
+    -webkit-appearance: none; width: 100%; height: 4px;
+    background: linear-gradient(to right, var(--accent) 0%, var(--accent) var(--pct,50%), var(--surface2) var(--pct,50%));
+    border-radius: 4px; cursor: pointer; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 18px; height: 18px; background: var(--accent);
+    border-radius: 50%; border: 3px solid var(--bg); box-shadow: 0 0 0 1px var(--accent);
+  }
+  .slider-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+  .btn-grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 7px; }
+  .btn-grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; }
+  .btn-grid-6 { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; }
+  @media(min-width:480px){ .btn-grid-6 { grid-template-columns: repeat(6,1fr); } }
+
+  .sel-btn {
+    padding: 8px 6px; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--soft); font-size: 12px;
+    cursor: pointer; text-align: center; transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .sel-btn.active { background: rgba(249,115,22,0.15); border-color: var(--accent); color: var(--accent2); }
+  .sel-btn .sub { font-size: 10px; color: var(--muted); display: block; margin-top: 2px; }
+  .sel-btn.active .sub { color: rgba(251,146,60,0.7); }
+
+  .plan-btn {
+    padding: 11px 13px; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--soft); font-size: 13px;
+    cursor: pointer; text-align: left; transition: all 0.2s; width: 100%;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .plan-btn .pn { font-weight: 600; color: var(--text); display: block; margin-bottom: 2px; }
+  .plan-btn .ps { font-size: 11px; color: var(--muted); }
+  .plan-btn.active { background: rgba(249,115,22,0.1); border-color: var(--accent); }
+  .plan-btn.active .pn { color: var(--accent2); }
+
+  .breakdown { display: grid; gap: 7px; }
+  .b-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 13px; background: var(--surface2); border-radius: var(--radius-sm);
+    border-left: 3px solid var(--border);
+  }
+  .b-row.hl { border-left-color: var(--accent); }
+  .b-row.green { border-left-color: var(--green); }
+  .b-row.blue { border-left-color: var(--blue); }
+  .b-row.purple { border-left-color: var(--purple); }
+  .b-row.gold { border-left-color: var(--gold); }
+  .b-row.total { background: rgba(249,115,22,0.1); border: 1px solid rgba(249,115,22,0.25); }
+  .b-label { font-size: 13px; color: var(--soft); }
+  .b-label small { display: block; font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .b-val { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; }
+  .b-val.big { font-size: 22px; color: var(--accent); }
+  .b-val.zero { color: var(--muted); }
+
+  /* Plan mix inputs */
+  .plan-mix-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; margin-bottom: 10px; }
+  .plan-mix-label { font-size: 12px; color: var(--soft); }
+  .num-wrap { display: flex; align-items: center; gap: 6px; }
+  .num-btn {
+    width: 28px; height: 28px; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text); font-size: 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0;
+  }
+  .num-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .num-disp { min-width: 32px; text-align: center; font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; }
+
+  /* Scenario */
+  .sc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media(max-width:580px){ .sc-grid { grid-template-columns: 1fr; } }
+  .sc-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  .sc-card.winner { border-color: var(--green); background: rgba(16,185,129,0.05); }
+  .sc-tag { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; color: var(--muted); }
+  .sc-card.winner .sc-tag { color: var(--green); }
+  .sc-amount { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+  .sc-card.winner .sc-amount { color: var(--green); }
+  .sc-meta { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+  .sc-rows { display: grid; gap: 5px; }
+  .sc-row { display: flex; justify-content: space-between; font-size: 12px; }
+  .sc-row span:first-child { color: var(--muted); }
+  .sc-row span:last-child { font-weight: 600; color: var(--soft); }
+  .diff-banner { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); border-radius: var(--radius-sm); padding: 12px 16px; text-align: center; margin-top: 14px; font-size: 14px; color: var(--green); font-weight: 600; display: none; }
+
+  /* Payment Mix */
+  .mix-bar-bg { height: 7px; background: var(--surface2); border-radius: 4px; overflow: hidden; margin-top: 3px; }
+  .mix-bar { height: 100%; border-radius: 4px; transition: width 0.3s; }
+
+  /* Goal */
+  .goal-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 22px; font-family: 'Syne', sans-serif; font-weight: 700; padding: 12px 16px; outline: none; }
+  .goal-input:focus { border-color: var(--accent); }
+  .goal-presets { display: flex; gap: 7px; flex-wrap: wrap; margin: 10px 0 16px; }
+  .gp { padding: 5px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 999px; font-size: 12px; color: var(--soft); cursor: pointer; transition: all 0.2s; }
+  .gp:hover { border-color: var(--accent); color: var(--accent2); }
+  .progress-bg { background: var(--surface2); border-radius: var(--radius); overflow: hidden; height: 10px; margin-bottom: 6px; }
+  .progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--gold)); border-radius: var(--radius); transition: width 0.5s; }
+  .goal-item { display: flex; align-items: center; gap: 12px; background: var(--surface2); border-radius: var(--radius-sm); padding: 11px 13px; }
+  .goal-icon { width: 34px; height: 34px; background: rgba(249,115,22,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+  .goal-val { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 17px; color: var(--accent); }
+  .goal-lbl { font-size: 12px; color: var(--muted); }
+  .alert-box { border-radius: var(--radius-sm); padding: 11px 13px; font-size: 13px; margin-bottom: 12px; display: none; }
+  .alert-red { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+  .alert-green { background: #f0fdf4; border: 1px solid #bbf7d0; color: #14532d; }
+  .alert-blue { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+
+  /* Sticky bar */
+  .sticky {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: #ffffff;
+    border-top: 2px solid var(--accent);
+    padding: 12px 20px; z-index: 200;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 -4px 20px rgba(255,92,57,0.12);
+  }
+  .sticky-left .lbl { font-size: 11px; color: var(--muted); }
+  .sticky-left .amt { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; color: var(--accent); line-height: 1; }
+  .sticky-right { text-align: right; }
+  .sticky-right .enroll { font-size: 13px; color: var(--soft); font-weight: 600; }
+  .sticky-right .nudge { font-size: 11px; color: var(--muted); }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media(max-width:700px){ .two-col { grid-template-columns: 1fr; } }
+  .section-note { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-sm); padding: 10px 13px; font-size: 12px; color: #1d4ed8; margin-bottom: 14px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .tag-green { background: rgba(5,150,105,0.12); color: var(--green); }
+  .tag-red { background: rgba(220,38,38,0.12); color: var(--red); }
+  .cta-btn { display: block; width: 100%; background: var(--accent); color: white; font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; padding: 13px; border-radius: var(--radius-sm); border: none; cursor: pointer; text-align: center; text-decoration: none; margin-top: 14px; transition: opacity 0.2s; }
+  .cta-btn:hover { opacity: 0.85; }
+  .earner-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; }
+  .earner { display: flex; align-items: center; gap: 9px; background: var(--surface2); border-radius: var(--radius-sm); padding: 10px 12px; }
+  .av { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg,var(--accent),var(--gold)); display: flex; align-items: center; justify-content: center; font-family:'Syne',sans-serif; font-weight:800; font-size:13px; color:white; flex-shrink:0; }
+  .av-name { font-size: 12px; font-weight: 600; color: var(--text); }
+  .av-amt { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800; color: var(--accent); }
+  select { width:100%; padding:10px; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); font-size:13px; outline:none; font-family:'DM Sans',sans-serif; }
+  select:focus { border-color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="topnav">
+    <div class="topnav-logo">
+      <span style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text);">Codingal</span>
+    </div>
+    <div class="topnav-right">
+      <span style="font-size:12px;color:var(--muted);font-weight:500;">Apollo Gladiators</span>
+      <a href="https://codingal.typeform.com/to/nyM2OQam" target="_blank" class="topnav-cta">Apply Now →</a>
+    </div>
+  </div>
+  <div class="header-body">
+    <div class="badge">⚡ Apollo Gladiators · May 2026 Policy</div>
+    <h1>How much will you <span>actually earn?</span></h1>
+    <p>Based on the official May 1, 2026 incentive policy — enrollment tiers, milestones, revenue bonanza, upfront deals & more.</p>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('calc',this)">📊 Calculator</button>
+  <button class="tab" onclick="switchTab('scenario',this)">⚔️ Compare</button>
+  <button class="tab" onclick="switchTab('mix',this)">💳 Pay Mix</button>
+  <button class="tab" onclick="switchTab('goal',this)">🎯 Goal</button>
+  <button class="tab" onclick="switchTab('policy',this)">📄 Policy</button>
+</div>
+
+<div class="main">
+
+<!-- ===================== CALCULATOR ===================== -->
+<div id="tab-calc" class="panel active">
+  <div class="two-col">
+    <div>
+      <div class="card">
+        <div class="card-title">👤 Your Profile</div>
+        <div class="field">
+          <div class="label">Region <span class="tip" data-tip="India/South Asia and Africa share the ISA payout slab. All other countries earn higher rates.">?</span></div>
+          <div class="btn-grid-2">
+            <button class="sel-btn active" onclick="setR('isa',this)">India / South Asia / Africa</button>
+            <button class="sel-btn" onclick="setR('other',this)">All Other Countries</button>
+          </div>
+        </div>
+        <div class="field">
+          <div class="label">Trials per week <span class="tip" data-tip="Each trial is a live class with a prospective student. More trials = more enrollment opportunities.">?</span> <span class="slider-val" id="v-trials">10</span></div>
+          <input type="range" id="s-trials" min="2" max="40" value="10" oninput="sv(this,'v-trials');calc()"/>
+          <div class="slider-labels"><span>2/wk</span><span>40/wk</span></div>
+        </div>
+        <div class="field">
+          <div class="label">Conversion rate <span class="tip" data-tip="Out of every 10 trials, how many parents enroll? Industry avg is 30-40%.">?</span></div>
+          <div class="btn-grid-6">
+            <button class="sel-btn" onclick="setC(20,this)">20%<span class="sub">2/10</span></button>
+            <button class="sel-btn" onclick="setC(30,this)">30%<span class="sub">3/10</span></button>
+            <button class="sel-btn active" onclick="setC(40,this)">40%<span class="sub">4/10</span></button>
+            <button class="sel-btn" onclick="setC(50,this)">50%<span class="sub">5/10</span></button>
+            <button class="sel-btn" onclick="setC(60,this)">60%<span class="sub">6/10</span></button>
+            <button class="sel-btn" onclick="setC(70,this)">70%+<span class="sub">7/10</span></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📦 Plan Mix <span class="tip" data-tip="How many enrollments of each plan type did you close this month? Longer plans = higher per-enrollment payout." style="font-size:11px;font-weight:400;text-transform:none;letter-spacing:0">Drag each slider</span></div>
+        <div class="section-note" style="margin-bottom:12px;">💡 These are the actual tiered rates from the May 2026 policy. Adjust the split to match your real month.</div>
+        <!-- plan mix rows -->
+        <div id="plan-mix-ui"></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:4px;">
+          <span>Total enrollments: <b id="total-enroll-label" style="color:var(--text)">0</b></span>
+          <span id="mix-note" style="color:var(--accent2)"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">💰 Revenue & Upfront Deals <span class="tip" data-tip="Revenue Bonanza is triggered by total monthly USD revenue. Upfront Deal bonus is per deal over $300/$500/$1000." style="font-size:11px;font-weight:400;text-transform:none;letter-spacing:0;">from policy sections 3 & 4</span></div>
+        <div class="field">
+          <div class="label">Estimated monthly revenue (USD) <span class="tip" data-tip="Sum of all plan values collected this month. Used to unlock Revenue Bonanza slabs ($1k, $1.5k, $2.5k...).">?</span> <span class="slider-val" id="v-rev">$500</span></div>
+          <input type="range" id="s-rev" min="0" max="12000" step="100" value="500" oninput="sv(this,'v-rev',true);calc()"/>
+          <div class="slider-labels"><span>$0</span><span>$12,000</span></div>
+        </div>
+        <div class="field">
+          <div class="label">Upfront deals this month <span class="tip" data-tip="Deals where a parent paid a large upfront amount. Each deal earns a separate bonus on top of enrollment incentive.">?</span></div>
+          <div id="upfront-ui" style="display:grid;gap:8px;">
+            <div class="plan-mix-row">
+              <div class="plan-mix-label">🟡 Deals ≥ $300 <span style="color:var(--muted);font-size:11px;">(+₹500 each)</span></div>
+              <div class="num-wrap"><button class="num-btn" onclick="adj('ud300',-1)">−</button><div class="num-disp" id="ud300">0</div><button class="num-btn" onclick="adj('ud300',1)">+</button></div>
+            </div>
+            <div class="plan-mix-row">
+              <div class="plan-mix-label">🟠 Deals ≥ $500 <span style="color:var(--muted);font-size:11px;">(+₹750 each)</span></div>
+              <div class="num-wrap"><button class="num-btn" onclick="adj('ud500',-1)">−</button><div class="num-disp" id="ud500">0</div><button class="num-btn" onclick="adj('ud500',1)">+</button></div>
+            </div>
+            <div class="plan-mix-row">
+              <div class="plan-mix-label">🔴 Deals ≥ $1,000 <span style="color:var(--muted);font-size:11px;">(+₹1,200 each)</span></div>
+              <div class="num-wrap"><button class="num-btn" onclick="adj('ud1000',-1)">−</button><div class="num-disp" id="ud1000">0</div><button class="num-btn" onclick="adj('ud1000',1)">+</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">⚡ Bonus Activities</div>
+        <div class="field">
+          <div class="label">On-spot conversions (within 12 hrs) <span class="tip" data-tip="₹150 per conversion where the parent enrolled within 12 hours of trial completion.">?</span> <span class="slider-val" id="v-onspot">3</span></div>
+          <input type="range" id="s-onspot" min="0" max="30" value="3" oninput="sv(this,'v-onspot');calc()"/>
+        </div>
+        <div class="field">
+          <div class="label">Auto-pay activations <span class="tip" data-tip="₹100 per monthly subscription where auto-debit (Razorpay/Stripe) was successfully set up.">?</span> <span class="slider-val" id="v-auto">3</span></div>
+          <input type="range" id="s-auto" min="0" max="30" value="3" oninput="sv(this,'v-auto');calc()"/>
+        </div>
+        <div class="field">
+          <div class="label">Nurture sales (2+ month old leads) <span class="tip" data-tip="₹1,500 flat for any sale from a lead that is ≥2 months old. This is INCLUSIVE of the enrollment incentive — you get the higher of the two.">?</span> <span class="slider-val" id="v-nurture">1</span></div>
+          <input type="range" id="s-nurture" min="0" max="15" value="1" oninput="sv(this,'v-nurture');calc()"/>
+        </div>
+        <div class="field">
+          <div class="label">Referral bonuses this month <span class="tip" data-tip="₹1,000 each time a teacher you referred crosses 5 enrollments this month.">?</span></div>
+          <div class="num-wrap" style="margin-top:4px;"><button class="num-btn" onclick="adj('ref',-1)">−</button><div class="num-disp" id="ref">0</div><button class="num-btn" onclick="adj('ref',1)">+</button></div>
+        </div>
+        <div class="field">
+          <div class="label">Slack hygiene penalty <span class="tip" data-tip="₹100 deducted for each missed NHL feed post within 24 hrs of trial.">?</span></div>
+          <div class="num-wrap" style="margin-top:4px;"><button class="num-btn" onclick="adj('penalty',-1)">−</button><div class="num-disp" id="penalty">0</div><button class="num-btn" onclick="adj('penalty',1)">+</button></div>
+        </div>
+        <div class="field">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <input type="checkbox" id="joining" onchange="calc()" style="width:16px;height:16px;accent-color:var(--accent)"/>
+            <span style="font-size:13px;color:var(--soft)">First month joining bonus (₹1,000 after 3 enrollments)</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="position:sticky;top:56px;">
+        <div class="card-title">💰 Monthly Projection</div>
+        <div id="result-meta" style="font-size:12px;color:var(--muted);margin-bottom:12px;"></div>
+        <div class="breakdown" id="breakdown"></div>
+        <div id="coach-note" style="margin-top:12px;font-size:13px;color:var(--soft);line-height:1.5;padding:11px;background:var(--surface2);border-radius:var(--radius-sm);border-left:3px solid var(--accent);"></div>
+        <a href="https://codingal.typeform.com/to/nyM2OQam" target="_blank" class="cta-btn">Apply to Apollo →</a>
+        <hr class="divider"/>
+        <div class="card-title" style="font-size:11px;margin-bottom:10px;">🏆 Top Earners</div>
+        <div class="earner-grid">
+          <div class="earner"><div class="av">S</div><div><div class="av-name">Sharmila S</div><div class="av-amt">₹1,30,550</div></div></div>
+          <div class="earner"><div class="av">A</div><div><div class="av-name">Ayesha M</div><div class="av-amt">₹71,250</div></div></div>
+          <div class="earner"><div class="av">S</div><div><div class="av-name">Smita S</div><div class="av-amt">₹46,000</div></div></div>
+          <div class="earner"><div class="av">A</div><div><div class="av-name">Amit D</div><div class="av-amt">₹42,600</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SCENARIO ===================== -->
+<div id="tab-scenario" class="panel">
+  <div class="section-note">⚔️ Compare two weekly effort levels side-by-side. Uses mixed plan assumption.</div>
+  <div class="sc-grid">
+    <div class="card">
+      <div class="card-title" style="color:#60a5fa;">📘 Scenario A</div>
+      <div class="field"><div class="label">Trials/week <span class="slider-val" id="sv-sa">5</span></div>
+        <input type="range" id="s-sa" min="2" max="40" value="5" oninput="sv(this,'sv-sa');calcSc()"/></div>
+      <div class="field"><div class="label">Conversion</div>
+        <div class="btn-grid-6">
+          <button class="sel-btn" onclick="setSC('a',20,this)">20%</button>
+          <button class="sel-btn active" onclick="setSC('a',30,this)">30%</button>
+          <button class="sel-btn" onclick="setSC('a',40,this)">40%</button>
+          <button class="sel-btn" onclick="setSC('a',50,this)">50%</button>
+          <button class="sel-btn" onclick="setSC('a',60,this)">60%</button>
+          <button class="sel-btn" onclick="setSC('a',70,this)">70%</button>
+        </div>
+      </div>
+      <div class="field"><div class="label">Plan mix</div>
+        <select id="sc-a-plan" onchange="calcSc()">
+          <option value="short">Mostly Short (4/8 class)</option>
+          <option value="mid" selected>Mixed (avg 48 class)</option>
+          <option value="long">Mostly Long (96+ class)</option>
+        </select>
+      </div>
+      <div class="field"><div class="label">Monthly revenue (USD) <span class="slider-val" id="sv-sa-rev">$400</span></div>
+        <input type="range" id="s-sa-rev" min="0" max="10000" step="100" value="400" oninput="sv(this,'sv-sa-rev',true);calcSc()"/></div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:#f97316;">📙 Scenario B</div>
+      <div class="field"><div class="label">Trials/week <span class="slider-val" id="sv-sb">10</span></div>
+        <input type="range" id="s-sb" min="2" max="40" value="10" oninput="sv(this,'sv-sb');calcSc()"/></div>
+      <div class="field"><div class="label">Conversion</div>
+        <div class="btn-grid-6">
+          <button class="sel-btn" onclick="setSC('b',20,this)">20%</button>
+          <button class="sel-btn" onclick="setSC('b',30,this)">30%</button>
+          <button class="sel-btn active" onclick="setSC('b',40,this)">40%</button>
+          <button class="sel-btn" onclick="setSC('b',50,this)">50%</button>
+          <button class="sel-btn" onclick="setSC('b',60,this)">60%</button>
+          <button class="sel-btn" onclick="setSC('b',70,this)">70%</button>
+        </div>
+      </div>
+      <div class="field"><div class="label">Plan mix</div>
+        <select id="sc-b-plan" onchange="calcSc()">
+          <option value="short">Mostly Short (4/8 class)</option>
+          <option value="mid" selected>Mixed (avg 48 class)</option>
+          <option value="long">Mostly Long (96+ class)</option>
+        </select>
+      </div>
+      <div class="field"><div class="label">Monthly revenue (USD) <span class="slider-val" id="sv-sb-rev">$800</span></div>
+        <input type="range" id="s-sb-rev" min="0" max="10000" step="100" value="800" oninput="sv(this,'sv-sb-rev',true);calcSc()"/></div>
+    </div>
+  </div>
+  <div class="sc-grid" id="sc-results" style="margin-top:14px;"></div>
+  <div class="diff-banner" id="sc-diff"></div>
+</div>
+
+<!-- ===================== PAYMENT MIX ===================== -->
+<div id="tab-mix" class="panel">
+  <div class="section-note">💳 See how your payment close strategy directly impacts monthly earnings. Monthly Sub = last resort.</div>
+  <div class="two-col">
+    <div>
+      <div class="card">
+        <div class="card-title">🎚️ Mix Settings</div>
+        <div class="field">
+          <div class="label">Enrollments/month <span class="slider-val" id="v-mx-enroll">15</span></div>
+          <input type="range" id="s-mx-enroll" min="1" max="60" value="15" oninput="sv(this,'v-mx-enroll');calcMix()"/>
+        </div>
+        <div class="field">
+          <div class="label">Region</div>
+          <div class="btn-grid-2">
+            <button class="sel-btn active" onclick="setMixR('isa',this)">ISA Region</button>
+            <button class="sel-btn" onclick="setMixR('other',this)">Other Countries</button>
+          </div>
+        </div>
+        <hr class="divider"/>
+        <div id="mix-sliders"></div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title">📊 Earnings by Mix</div>
+        <div id="mix-result"></div>
+      </div>
+      <div class="card" style="margin-top:14px;">
+        <div class="card-title">🎯 3-Step Close Script</div>
+        <div style="display:grid;gap:9px;">
+          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:11px;">
+            <div style="font-size:11px;font-weight:700;color:#059669;letter-spacing:.05em;margin-bottom:4px;">STEP 1 — ANCHOR on Full Payment</div>
+            <div style="font-size:13px;color:var(--soft);">"The best value is our Annual plan — one payment, full year of learning, and the most savings."</div>
+          </div>
+          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:11px;">
+            <div style="font-size:11px;font-weight:700;color:#2563eb;letter-spacing:.05em;margin-bottom:4px;">STEP 2 — BRIDGE to Instalment</div>
+            <div style="font-size:13px;color:var(--soft);">"If upfront feels like a lot, we have a split-payment option — same commitment, spread over time."</div>
+          </div>
+          <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:11px;">
+            <div style="font-size:11px;font-weight:700;color:#dc2626;letter-spacing:.05em;margin-bottom:4px;">STEP 3 — LAST RESORT: Monthly Sub</div>
+            <div style="font-size:13px;color:var(--soft);">"Monthly is available if you'd like flexibility, but it ends up costing more and you miss the full learning journey."</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== GOAL ===================== -->
+<div id="tab-goal" class="panel">
+  <div class="section-note">🎯 Set your target and see exactly what daily/weekly effort is needed to hit it.</div>
+  <div class="two-col">
+    <div>
+      <div class="card">
+        <div class="card-title">💵 Income Target</div>
+        <input type="number" class="goal-input" id="goal-amt" value="30000" oninput="calcGoal()"/>
+        <div class="goal-presets">
+          <button class="gp" onclick="setG(20000)">₹20k</button>
+          <button class="gp" onclick="setG(30000)">₹30k</button>
+          <button class="gp" onclick="setG(50000)">₹50k</button>
+          <button class="gp" onclick="setG(75000)">₹75k</button>
+          <button class="gp" onclick="setG(100000)">₹1L</button>
+          <button class="gp" onclick="setG(150000)">₹1.5L</button>
+        </div>
+        <div class="field">
+          <div class="label">Region</div>
+          <div class="btn-grid-2">
+            <button class="sel-btn active" onclick="setGR('isa',this)">ISA Region</button>
+            <button class="sel-btn" onclick="setGR('other',this)">Other Countries</button>
+          </div>
+        </div>
+        <div class="field">
+          <div class="label">Assumed conversion rate</div>
+          <div class="btn-grid-6">
+            <button class="sel-btn" onclick="setGC(20,this)">20%</button>
+            <button class="sel-btn" onclick="setGC(30,this)">30%</button>
+            <button class="sel-btn active" onclick="setGC(40,this)">40%</button>
+            <button class="sel-btn" onclick="setGC(50,this)">50%</button>
+            <button class="sel-btn" onclick="setGC(60,this)">60%</button>
+            <button class="sel-btn" onclick="setGC(70,this)">70%</button>
+          </div>
+        </div>
+        <div class="field">
+          <div class="label">Plan assumption</div>
+          <select id="goal-plan" onchange="calcGoal()">
+            <option value="short">Mostly Short (4/8 classes) — conservative</option>
+            <option value="mid" selected>Mixed (avg 48 classes) — realistic</option>
+            <option value="long">Mostly Long (96+ classes) — aggressive</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title">📈 Your Roadmap to <span id="goal-disp" style="color:var(--accent)">₹30,000</span></div>
+        <div class="progress-bg"><div class="progress-bar" id="goal-prog" style="width:0%"></div></div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px;" id="goal-pct-lbl"></div>
+        <div class="alert-box alert-red" id="goal-imp">😅 This target exceeds what's achievable at 40 trials/week. Try a higher conversion rate or longer plan type.</div>
+        <div class="alert-box alert-green" id="goal-done">🎉 You'd already exceed this target at your current effort level!</div>
+        <div style="display:grid;gap:8px;" id="goal-items"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== POLICY ===================== -->
+<div id="tab-policy" class="panel">
+  <div class="section-note">📄 Quick-reference of the May 1, 2026 Apollo Incentive Policy rates used in this calculator.</div>
+  <div class="two-col">
+    <div>
+      <div class="card">
+        <div class="card-title">1. Enrollment Incentive (INR)</div>
+        <div class="breakdown">
+          <div class="b-row hl"><div class="b-label">4/8 classes — ISA</div><div class="b-val">₹700</div></div>
+          <div class="b-row hl"><div class="b-label">16+ classes — ISA</div><div class="b-val">₹1,000</div></div>
+          <div class="b-row hl"><div class="b-label">48+ classes — ISA</div><div class="b-val">₹1,300</div></div>
+          <div class="b-row hl"><div class="b-label">96+ classes — ISA</div><div class="b-val">₹1,600</div></div>
+          <div class="b-row hl"><div class="b-label">144+ classes — ISA</div><div class="b-val">₹1,900</div></div>
+          <div class="b-row blue"><div class="b-label">4/8 classes — Other</div><div class="b-val">₹950</div></div>
+          <div class="b-row blue"><div class="b-label">16+ classes — Other</div><div class="b-val">₹1,250</div></div>
+          <div class="b-row blue"><div class="b-label">48+ classes — Other</div><div class="b-val">₹1,550</div></div>
+          <div class="b-row blue"><div class="b-label">96+ classes — Other</div><div class="b-val">₹1,850</div></div>
+          <div class="b-row blue"><div class="b-label">144+ classes — Other</div><div class="b-val">₹2,150</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">2. Milestone Completion Bonus</div>
+        <div class="breakdown">
+          <div class="b-row"><div class="b-label">5+ enrollments</div><div class="b-val">₹1,000</div></div>
+          <div class="b-row"><div class="b-label">8+ enrollments</div><div class="b-val">₹2,000</div></div>
+          <div class="b-row hl"><div class="b-label">15+ enrollments</div><div class="b-val">₹3,500</div></div>
+          <div class="b-row hl"><div class="b-label">25+ enrollments</div><div class="b-val">₹5,000</div></div>
+          <div class="b-row gold"><div class="b-label">35+ enrollments</div><div class="b-val">₹8,000</div></div>
+          <div class="b-row gold"><div class="b-label">45+ enrollments</div><div class="b-val">₹10,000</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">4. Upfront Deal Bonus (per deal)</div>
+        <div class="breakdown">
+          <div class="b-row"><div class="b-label">Deal ≥ $300</div><div class="b-val">₹500</div></div>
+          <div class="b-row hl"><div class="b-label">Deal ≥ $500</div><div class="b-val">₹750</div></div>
+          <div class="b-row gold"><div class="b-label">Deal ≥ $1,000</div><div class="b-val">₹1,200</div></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title">3. Revenue Bonanza (monthly USD)</div>
+        <div class="breakdown">
+          <div class="b-row"><div class="b-label">$1,000</div><div class="b-val">₹1,500</div></div>
+          <div class="b-row"><div class="b-label">$1,500</div><div class="b-val">₹3,000</div></div>
+          <div class="b-row hl"><div class="b-label">$2,500</div><div class="b-val">₹6,000</div></div>
+          <div class="b-row hl"><div class="b-label">$4,000</div><div class="b-val">₹8,000</div></div>
+          <div class="b-row gold"><div class="b-label">$5,500</div><div class="b-val">₹10,000</div></div>
+          <div class="b-row gold"><div class="b-label">$7,500</div><div class="b-val">₹12,000</div></div>
+          <div class="b-row gold"><div class="b-label">$8,500</div><div class="b-val">₹15,000</div></div>
+          <div class="b-row gold"><div class="b-label">$10,000</div><div class="b-val">₹20,000</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">5–9. Other Bonuses</div>
+        <div class="breakdown">
+          <div class="b-row green"><div class="b-label">On-spot conversion (within 12 hrs)</div><div class="b-val">₹150</div></div>
+          <div class="b-row green"><div class="b-label">Auto-pay activation</div><div class="b-val">₹100</div></div>
+          <div class="b-row purple"><div class="b-label">Nurture sale (flat, incl. enroll incentive)</div><div class="b-val">₹1,500</div></div>
+          <div class="b-row purple"><div class="b-label">Referral bonus (per referred teacher @ 5 enroll)</div><div class="b-val">₹1,000</div></div>
+          <div class="b-row purple"><div class="b-label">Joining bonus (after first 3 enrollments)</div><div class="b-val">₹1,000</div></div>
+          <div class="b-row" style="border-left-color:var(--red)"><div class="b-label">Slack hygiene penalty (per missed post)</div><div class="b-val" style="color:var(--red)">−₹100</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">8. Long-term Milestones</div>
+        <div class="breakdown">
+          <div class="b-row"><div class="b-label">50 enrollments in a quarter</div><div class="b-val">₹3,000</div></div>
+          <div class="b-row gold"><div class="b-label">100 enrollments in 6 months</div><div class="b-val">₹7,500</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- STICKY BAR -->
+<div class="sticky" id="sticky">
+  <div class="sticky-left">
+    <div class="lbl">Est. Monthly Earnings</div>
+    <div class="amt" id="s-amt">₹—</div>
+  </div>
+  <div class="sticky-right">
+    <div class="enroll" id="s-enroll"></div>
+    <div class="nudge" id="s-nudge"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// POLICY DATA — MAY 1 2026
+// ============================================================
+const ENROLL_RATES = {
+  isa:   { 4:700,  16:1000, 48:1300, 96:1600, 144:1900 },
+  other: { 4:950,  16:1250, 48:1550, 96:1850, 144:2150 }
+};
+const MILESTONES = [
+  { min:5,  bonus:1000 },
+  { min:8,  bonus:2000 },
+  { min:15, bonus:3500 },
+  { min:25, bonus:5000 },
+  { min:35, bonus:8000 },
+  { min:45, bonus:10000 },
+];
+const REV_BONANZA = [
+  { min:1000,  bonus:1500 },
+  { min:1500,  bonus:3000 },
+  { min:2500,  bonus:6000 },
+  { min:4000,  bonus:8000 },
+  { min:5500,  bonus:10000 },
+  { min:7500,  bonus:12000 },
+  { min:8500,  bonus:15000 },
+  { min:10000, bonus:20000 },
+];
+const UPFRONT_RATES = [
+  { min:300,  bonus:500  },
+  { min:500,  bonus:750  },
+  { min:1000, bonus:1200 },
+];
+const PLAN_TIERS = [
+  { label:'4/8 classes (Monthly Sub)',   key:'t4',   threshold:4,   isa:700,  other:950  },
+  { label:'16 classes (Quarterly)',       key:'t16',  threshold:16,  isa:1000, other:1250 },
+  { label:'48 classes (Semi-Annual)',     key:'t48',  threshold:48,  isa:1300, other:1550 },
+  { label:'96 classes (Annual)',          key:'t96',  threshold:96,  isa:1600, other:1850 },
+  { label:'144+ classes (Mega Annual)',   key:'t144', threshold:144, isa:1900, other:2150 },
+];
+
+function getMilestone(e) {
+  let b = 0;
+  for (const m of MILESTONES) if (e >= m.min) b = m.bonus;
+  return b;
+}
+function getRevBonanza(usd) {
+  let b = 0;
+  for (const r of REV_BONANZA) if (usd >= r.min) b = r.bonus;
+  return b;
+}
+function fmt(n) { return '₹' + Math.round(n).toLocaleString('en-IN'); }
+function fmtUSD(n) { return '$' + Number(n).toLocaleString('en-US'); }
+
+// ============================================================
+// STATE
+// ============================================================
+const S = {
+  region: 'isa', conv: 40,
+  plans: { t4:2, t16:3, t48:4, t96:3, t144:1 },
+  revUSD: 500,
+  ud300:0, ud500:0, ud1000:0,
+  onspot:3, auto:3, nurture:1, ref:0, penalty:0, joining:false,
+  sc: { a:{ conv:30 }, b:{ conv:40 } },
+  mixRegion:'isa',
+  goalRegion:'isa', goalConv:40,
+};
+
+// ============================================================
+// PLAN MIX UI BUILD
+// ============================================================
+function buildPlanMixUI() {
+  const el = document.getElementById('plan-mix-ui');
+  el.innerHTML = PLAN_TIERS.map(t => `
+    <div class="plan-mix-row" style="margin-bottom:10px;">
+      <div>
+        <div class="plan-mix-label">${t.label}</div>
+        <div style="font-size:11px;color:var(--muted);">ISA: ${fmt(t.isa)} &nbsp;|&nbsp; Other: ${fmt(t.other)}</div>
+      </div>
+      <div class="num-wrap">
+        <button class="num-btn" onclick="adjPlan('${t.key}',-1)">−</button>
+        <div class="num-disp" id="pm-${t.key}">${S.plans[t.key]}</div>
+        <button class="num-btn" onclick="adjPlan('${t.key}',1)">+</button>
+      </div>
+    </div>`).join('');
+}
+function adjPlan(key, d) {
+  S.plans[key] = Math.max(0, (S.plans[key]||0) + d);
+  document.getElementById('pm-'+key).textContent = S.plans[key];
+  calc();
+}
+
+// ============================================================
+// PAYMENT MIX TAB UI
+// ============================================================
+const MIX_TIERS = [
+  { key:'m4',   label:'🔴 4/8 classes (Monthly Sub)', isa:700,  other:950,  color:'#ef4444' },
+  { key:'m16',  label:'🟡 16 classes (Quarterly)',    isa:1000, other:1250, color:'#f59e0b' },
+  { key:'m48',  label:'🟢 48 classes (Semi-Annual)',  isa:1300, other:1550, color:'#10b981' },
+  { key:'m96',  label:'🔵 96 classes (Annual)',       isa:1600, other:1850, color:'#3b82f6' },
+  { key:'m144', label:'💜 144+ classes (Mega)',       isa:1900, other:2150, color:'#a78bfa' },
+];
+const mixVals = { m4:40, m16:20, m48:20, m96:15, m144:5 };
+let mixR = 'isa';
+
+function buildMixUI() {
+  const el = document.getElementById('mix-sliders');
+  el.innerHTML = MIX_TIERS.map(t => `
+    <div style="margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+        <span style="color:var(--soft)">${t.label}</span>
+        <span id="mx-pct-${t.key}" style="font-weight:700;color:var(--text)">${mixVals[t.key]}%</span>
+      </div>
+      <input type="range" id="mx-${t.key}" min="0" max="100" value="${mixVals[t.key]}" oninput="syncMix('${t.key}');calcMix()" style="--pct:${mixVals[t.key]}%"/>
+      <div class="mix-bar-bg"><div class="mix-bar" id="mx-bar-${t.key}" style="width:${mixVals[t.key]}%;background:${t.color}"></div></div>
+    </div>`).join('');
+}
+function syncMix(changed) {
+  MIX_TIERS.forEach(t => mixVals[t.key] = +document.getElementById('mx-'+t.key).value);
+  const total = Object.values(mixVals).reduce((a,b)=>a+b,0);
+  MIX_TIERS.forEach(t => {
+    document.getElementById('mx-pct-'+t.key).textContent = mixVals[t.key]+'%';
+    document.getElementById('mx-bar-'+t.key).style.width = mixVals[t.key]+'%';
+    const pct = (mixVals[t.key]-0)/(100)*100;
+    document.getElementById('mx-'+t.key).style.setProperty('--pct', mixVals[t.key]+'%');
+  });
+  document.getElementById('mix-sliders').querySelectorAll('input[type=range]').forEach(el => {
+    const min=+el.min,max=+el.max,val=+el.value;
+    el.style.setProperty('--pct',((val-min)/(max-min)*100)+'%');
+  });
+}
+function setMixR(r,btn) {
+  mixR=r;
+  btn.closest('.btn-grid-2').querySelectorAll('.sel-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  calcMix();
+}
+function calcMix() {
+  syncMix();
+  const enrollments = +document.getElementById('s-mx-enroll').value;
+  let totalEarnings = 0;
+  const rows = MIX_TIERS.map(t => {
+    const pct = mixVals[t.key]/100;
+    const n = Math.round(enrollments * pct);
+    const rate = t[mixR];
+    const earnings = n * rate;
+    totalEarnings += earnings;
+    return { t, n, earnings };
+  });
+  const milestone = getMilestone(enrollments);
+  totalEarnings += milestone;
+
+  // all-monthly-sub baseline
+  const worstCase = enrollments * MIX_TIERS[0][mixR];
+  // all-long baseline
+  const bestCase = enrollments * MIX_TIERS[4][mixR];
+  const uplift = totalEarnings - worstCase - milestone;
+
+  document.getElementById('mix-result').innerHTML = `
+    <div class="breakdown">
+      ${rows.map(r=>`
+        <div class="b-row" style="border-left-color:${r.t.color}">
+          <div class="b-label">${r.t.label}<small>${r.n} enrollments × ${fmt(r.t[mixR])}</small></div>
+          <div class="b-val">${fmt(r.earnings)}</div>
+        </div>`).join('')}
+      <div class="b-row green"><div class="b-label">Milestone bonus<small>${enrollments} enrollments</small></div><div class="b-val">${fmt(milestone)}</div></div>
+      <div class="b-row total"><div class="b-label">Your current mix</div><div class="b-val big">${fmt(totalEarnings)}</div></div>
+    </div>
+    <div style="display:grid;gap:8px;margin-top:12px;">
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:11px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:12px;color:var(--soft)">If ALL were 144+ class plans</span>
+        <span style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#059669">${fmt(bestCase+milestone)}</span>
+      </div>
+      <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:11px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:12px;color:var(--soft)">Uplift vs all-monthly-sub</span>
+        <span style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--accent)">+${fmt(uplift)}</span>
+      </div>
+    </div>`;
+}
+
+// ============================================================
+// MAIN CALC
+// ============================================================
+function calc() {
+  // Read sliders
+  const trialsWk = +document.getElementById('s-trials').value;
+  const revUSD   = +document.getElementById('s-rev').value;
+  const onspot   = +document.getElementById('s-onspot').value;
+  const autopay  = +document.getElementById('s-auto').value;
+  const nurture  = +document.getElementById('s-nurture').value;
+  const ref      = +document.getElementById('ref').textContent;
+  const penalty  = +document.getElementById('penalty').textContent;
+  const joining  = document.getElementById('joining').checked;
+  const ud300    = +document.getElementById('ud300').textContent;
+  const ud500    = +document.getElementById('ud500').textContent;
+  const ud1000   = +document.getElementById('ud1000').textContent;
+
+  // Total enrollments from plan mix
+  const totalEnroll = PLAN_TIERS.reduce((a,t) => a+(S.plans[t.key]||0), 0);
+  document.getElementById('total-enroll-label').textContent = totalEnroll;
+
+  // Enrollment incentive (tiered by actual plan mix)
+  let enrollIncentive = 0;
+  PLAN_TIERS.forEach(t => {
+    const n = S.plans[t.key]||0;
+    const rate = S.region === 'isa' ? t.isa : t.other;
+    enrollIncentive += n * rate;
+  });
+
+  // Nurture adjustment: nurture sale is ₹1,500 flat inclusive of enrollment incentive
+  // So for each nurture sale, the extra top-up = 1500 - normal enrollment incentive for that enrollment
+  // We approximate: top-up = max(0, 1500 - avg_rate)
+  const avgRate = totalEnroll > 0 ? enrollIncentive / totalEnroll : 0;
+  const nurtureTopup = nurture * Math.max(0, 1500 - avgRate);
+
+  const milestone    = getMilestone(totalEnroll);
+  const revBonanza   = getRevBonanza(revUSD);
+  const upfrontBonus = (ud300 * 500) + (ud500 * 750) + (ud1000 * 1200);
+  const onspotBonus  = onspot * 150;
+  const autopayBonus = autopay * 100;
+  const refBonus     = ref * 1000;
+  const joinBonus    = joining ? 1000 : 0;
+  const penaltyAmt   = penalty * 100;
+
+  const total = enrollIncentive + nurtureTopup + milestone + revBonanza + upfrontBonus + onspotBonus + autopayBonus + refBonus + joinBonus - penaltyAmt;
+
+  // Monthly trials
+  const monthlyTrials = Math.round(trialsWk * 4.3);
+  document.getElementById('result-meta').innerHTML =
+    `${totalEnroll} enrollments entered · ${monthlyTrials} trials/month projected at ${S.conv}% conv`;
+
+  const rows = [
+    { label:'Enrollment Incentive', sub:`${totalEnroll} enrollments (tiered by plan)`, val:enrollIncentive, cls:'hl' },
+    { label:'Nurture Sale Top-up',  sub:`${nurture} nurture sales (₹1,500 flat - base rate)`, val:Math.round(nurtureTopup), cls:'hl', hide: nurture===0 },
+    { label:'Milestone Bonus',      sub:getMilestoneLabel(totalEnroll), val:milestone, cls:'green' },
+    { label:'Revenue Bonanza',      sub:`${fmtUSD(revUSD)} monthly revenue`, val:revBonanza, cls:'gold' },
+    { label:'Upfront Deal Bonus',   sub:`${ud300} × $300 · ${ud500} × $500 · ${ud1000} × $1000`, val:upfrontBonus, cls:'gold', hide:(ud300+ud500+ud1000)===0 },
+    { label:'On-Spot Bonus',        sub:`${onspot} conversions × ₹150`, val:onspotBonus, cls:'green', hide:onspot===0 },
+    { label:'Auto-Pay Reward',      sub:`${autopay} activations × ₹100`, val:autopayBonus, cls:'green', hide:autopay===0 },
+    { label:'Referral Bonus',       sub:`${ref} referrals × ₹1,000`, val:refBonus, cls:'purple', hide:ref===0 },
+    { label:'Joining Bonus',        sub:'First 3 enrollments cleared', val:joinBonus, cls:'purple', hide:!joining },
+    { label:'Slack Penalty',        sub:`−${penalty} missed posts × ₹100`, val:-penaltyAmt, cls:'red', hide:penalty===0 },
+    { label:'Total Monthly Earnings', sub:'', val:total, cls:'total' },
+  ];
+
+  document.getElementById('breakdown').innerHTML = rows
+    .filter(r => !r.hide)
+    .map(r => `
+      <div class="b-row ${r.cls}">
+        <div class="b-label">${r.label}${r.sub ? `<small>${r.sub}</small>` : ''}</div>
+        <div class="b-val ${r.cls==='total'?'big':''} ${r.val===0&&r.cls!=='total'?'zero':''}" style="${r.val<0?'color:var(--red)':''}">
+          ${r.val<0?'−':''}${fmt(Math.abs(r.val))}
+        </div>
+      </div>`).join('');
+
+  // Coach note
+  const nextMs = MILESTONES.find(m => m.min > totalEnroll);
+  let note = '';
+  if (nextMs) {
+    note = `📈 <b>${nextMs.min - totalEnroll} more enrollment${nextMs.min-totalEnroll>1?'s':''}</b> unlocks the ${fmt(nextMs.bonus)} milestone bonus.`;
+  } else {
+    note = `🏆 Top milestone tier hit! Focus on Revenue Bonanza — push for $${REV_BONANZA.find(r=>revUSD<r.min)?.min || '10,000+'} next.`;
+  }
+  const nextRev = REV_BONANZA.find(r => revUSD < r.min);
+  if (nextRev) note += ` &nbsp;·&nbsp; <b>$${nextRev.min - revUSD} more</b> revenue unlocks ${fmt(nextRev.bonus)} bonanza.`;
+  document.getElementById('coach-note').innerHTML = note;
+
+  // Sticky
+  document.getElementById('s-amt').textContent = fmt(total);
+  document.getElementById('s-enroll').textContent = `${totalEnroll} enrollments · ${monthlyTrials} trials/mo`;
+  document.getElementById('s-nudge').textContent = milestone > 0 ? `✓ ${fmt(milestone)} milestone` : `${nextMs ? nextMs.min - totalEnroll + ' more for milestone' : ''}`;
+
+  save();
+}
+
+function getMilestoneLabel(e) {
+  const b = getMilestone(e);
+  if (b===0) return `Need ${5-e>0?5-e:'?'} more for 5+ slab`;
+  const next = MILESTONES.find(m=>m.min>e);
+  return `${e}+ slab · ${next?`${next.min-e} more to unlock ${fmt(next.bonus)}`:' top tier!'}`;
+}
+
+// ============================================================
+// SCENARIO
+// ============================================================
+function scSimple(trials, conv, planKey, revUSD) {
+  const monthlyTrials = Math.round(trials * 4.3);
+  const enrollments = Math.round(monthlyTrials * conv / 100);
+  // Use single average rate for scenario
+  const PLAN_AVG = {
+    short: { isa:700, other:950 },
+    mid:   { isa:1300, other:1550 },
+    long:  { isa:1900, other:2150 }
+  };
+  const rate = PLAN_AVG[planKey]['isa'];
+  const enInc = enrollments * rate;
+  const ms = getMilestone(enrollments);
+  const rb = getRevBonanza(revUSD);
+  return { enrollments, enInc, ms, rb, total: enInc+ms+rb };
+}
+function calcSc() {
+  const sa = scSimple(+document.getElementById('s-sa').value, S.sc.a.conv, document.getElementById('sc-a-plan').value, +document.getElementById('s-sa-rev').value);
+  const sb = scSimple(+document.getElementById('s-sb').value, S.sc.b.conv, document.getElementById('sc-b-plan').value, +document.getElementById('s-sb-rev').value);
+
+  const w = sa.total >= sb.total ? 'a' : 'b';
+  const makeCard = (id, label, color, s, isWinner) => `
+    <div class="sc-card ${isWinner?'winner':''}">
+      <div class="sc-tag" style="color:${isWinner?'var(--green)':color}">${label} ${isWinner?'<span class="tag tag-green">WINNER</span>':''}</div>
+      <div class="sc-amount">${fmt(s.total)}</div>
+      <div class="sc-meta">${s.enrollments} enrollments</div>
+      <div class="sc-rows">
+        <div class="sc-row"><span>Enrollment incentive</span><span>${fmt(s.enInc)}</span></div>
+        <div class="sc-row"><span>Milestone bonus</span><span>${fmt(s.ms)}</span></div>
+        <div class="sc-row"><span>Revenue bonanza</span><span>${fmt(s.rb)}</span></div>
+      </div>
+    </div>`;
+  document.getElementById('sc-results').innerHTML =
+    makeCard('a','📘 Scenario A','#60a5fa',sa,w==='a') +
+    makeCard('b','📙 Scenario B','#f97316',sb,w==='b');
+
+  const diff = Math.abs(sa.total - sb.total);
+  const diffEl = document.getElementById('sc-diff');
+  if (diff > 0) {
+    diffEl.style.display = 'block';
+    diffEl.textContent = `Scenario ${w.toUpperCase()} earns ${fmt(diff)} more/month — that's ${fmt(diff*12)} extra per year.`;
+  }
+}
+function setSC(s, v, btn) {
+  S.sc[s].conv = v;
+  btn.closest('.btn-grid-6').querySelectorAll('.sel-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  calcSc();
+}
+
+// ============================================================
+// GOAL
+// ============================================================
+let gR='isa', gC=40;
+function setG(v){ document.getElementById('goal-amt').value=v; document.getElementById('goal-disp').textContent=fmt(v).replace('₹','₹'); calcGoal(); }
+function setGR(r,btn){ gR=r; btn.closest('.btn-grid-2').querySelectorAll('.sel-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); calcGoal(); }
+function setGC(v,btn){ gC=v; btn.closest('.btn-grid-6').querySelectorAll('.sel-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); calcGoal(); }
+function calcGoal() {
+  const target = +document.getElementById('goal-amt').value || 0;
+  const planKey = document.getElementById('goal-plan').value;
+  document.getElementById('goal-disp').textContent = '₹'+target.toLocaleString('en-IN');
+  const PLAN_AVG = { short:{isa:700,other:950}, mid:{isa:1300,other:1550}, long:{isa:1900,other:2150} };
+  const rate = PLAN_AVG[planKey][gR];
+
+  // Find min enrollments
+  let needed = 999;
+  for (let e=1; e<=200; e++) {
+    const ms = getMilestone(e);
+    const rev = e*rate;
+    if (rev+ms >= target) { needed=e; break; }
+  }
+  const trialsMonth = Math.ceil(needed/(gC/100));
+  const trialsWeek  = Math.ceil(trialsMonth/4.3);
+
+  // Max possible at 40 trials/wk
+  const maxE = Math.round(40*4.3*gC/100);
+  const maxRev = maxE*rate + getMilestone(maxE);
+  const impossible = trialsWeek > 40;
+  const pct = Math.min(100, Math.round(maxRev/target*100));
+
+  document.getElementById('goal-prog').style.width = pct+'%';
+  document.getElementById('goal-pct-lbl').textContent = impossible
+    ? 'Max effort (40 trials/wk) = '+fmt(maxRev)+' — below target'
+    : `At 40 trials/wk you'd earn ${fmt(maxRev)} — ${pct}% of your goal`;
+  document.getElementById('goal-imp').style.display = impossible?'block':'none';
+  document.getElementById('goal-done').style.display = (!impossible && maxRev>=target)?'block':'none';
+
+  if (!impossible) {
+    document.getElementById('goal-items').innerHTML = [
+      { icon:'📋', val:needed,                    label:'Enrollments needed/month' },
+      { icon:'🧪', val:trialsMonth,                label:`Trials needed/month (at ${gC}% conversion)` },
+      { icon:'📅', val:`${trialsWeek}/week`,       label:'Trials needed each week' },
+      { icon:'🗓️', val:`${(trialsWeek/7).toFixed(1)}/day`, label:'Average trials per day (7-day week)' },
+      { icon:'💵', val:fmt(needed*rate),           label:`Enrollment incentive alone` },
+    ].map(i=>`<div class="goal-item"><div class="goal-icon">${i.icon}</div><div><div class="goal-val">${i.val}</div><div class="goal-lbl">${i.label}</div></div></div>`).join('');
+  }
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function setR(r,btn){ S.region=r; btn.closest('.btn-grid-2').querySelectorAll('.sel-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); calc(); }
+function setC(v,btn){ S.conv=v; btn.closest('.btn-grid-6').querySelectorAll('.sel-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); calc(); }
+function adj(id,d){ const el=document.getElementById(id); const v=Math.max(0,(+el.textContent)+d); el.textContent=v; calc(); }
+function sv(el,valId,usd=false){
+  const min=+el.min,max=+el.max,val=+el.value;
+  el.style.setProperty('--pct',((val-min)/(max-min)*100)+'%');
+  document.getElementById(valId).textContent = usd ? fmtUSD(val) : val;
+}
+function switchTab(name,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(name==='scenario') calcSc();
+  if(name==='mix') calcMix();
+  if(name==='goal') calcGoal();
+}
+
+// ============================================================
+// PERSIST
+// ============================================================
+function save(){
+  try{ localStorage.setItem('apollo_v2', JSON.stringify({
+    region:S.region, conv:S.conv, plans:S.plans,
+    onspot:+document.getElementById('s-onspot').value,
+    auto:+document.getElementById('s-auto').value,
+    nurture:+document.getElementById('s-nurture').value,
+  })); } catch(e){}
+}
+function load(){
+  try{
+    const d=JSON.parse(localStorage.getItem('apollo_v2')||'null');
+    if(!d) return;
+    if(d.region) S.region=d.region;
+    if(d.conv) S.conv=d.conv;
+    if(d.plans) S.plans={...S.plans,...d.plans};
+    // Apply region
+    const ri = S.region==='isa'?0:1;
+    document.querySelectorAll('#tab-calc .btn-grid-2 .sel-btn')[ri]?.classList.add('active');
+    document.querySelectorAll('#tab-calc .btn-grid-2 .sel-btn')[1-ri]?.classList.remove('active');
+    // Apply conv
+    const convIdx = {20:0,30:1,40:2,50:3,60:4,70:5}[S.conv]||2;
+    document.querySelectorAll('#tab-calc .btn-grid-6 .sel-btn').forEach((b,i)=>b.classList.toggle('active',i===convIdx));
+    // Apply plan mix
+    PLAN_TIERS.forEach(t=>{ const el=document.getElementById('pm-'+t.key); if(el) el.textContent=S.plans[t.key]||0; });
+    // Sliders
+    if(d.onspot!==undefined){ document.getElementById('s-onspot').value=d.onspot; sv(document.getElementById('s-onspot'),'v-onspot'); }
+    if(d.auto!==undefined){   document.getElementById('s-auto').value=d.auto;     sv(document.getElementById('s-auto'),'v-auto'); }
+    if(d.nurture!==undefined){document.getElementById('s-nurture').value=d.nurture;sv(document.getElementById('s-nurture'),'v-nurture');}
+  }catch(e){}
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.onload = () => {
+  try { buildPlanMixUI(); } catch(e){ console.error('buildPlanMixUI',e); }
+  try { buildMixUI(); } catch(e){ console.error('buildMixUI',e); }
+  try { load(); } catch(e){ console.error('load',e); }
+  document.querySelectorAll('input[type=range]').forEach(el=>{
+    try {
+      const min=+el.min||0,max=+el.max||100,val=+el.value;
+      el.style.setProperty('--pct',((val-min)/(max-min)*100)+'%');
+    } catch(e){}
+  });
+  try { calc(); } catch(e){ console.error('calc',e); }
+  try { calcSc(); } catch(e){ console.error('calcSc',e); }
+  try { calcMix(); } catch(e){ console.error('calcMix',e); }
+  try { calcGoal(); } catch(e){ console.error('calcGoal',e); }
+};
+</script>
+</body>
+</html>
